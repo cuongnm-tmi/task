@@ -1,4 +1,4 @@
-# ICON MODE Store
+# task - ICON MODE Store
 
 Visual Studio C++ OpenGL walkthrough migrated from GLUT to GLFW + GLAD.
 
