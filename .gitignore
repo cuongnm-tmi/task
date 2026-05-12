@@ -4,6 +4,9 @@
 Debug/
 tools/
 vcpkg_installed/
+renders/
+__pycache__/
+*.pyc
 
 Bai1.trenlop/Debug/
 Bai1.trenlop/glm/
