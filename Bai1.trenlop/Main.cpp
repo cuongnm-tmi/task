@@ -103,8 +103,8 @@ bool presentPathReady = false;
 int presentWidth = 1;
 int presentHeight = 1;
 
-const float PRESENT_EXPOSURE = 1.18f;
-const float PRESENT_INV_GAMMA = 1.0f / 2.10f;
+const float PRESENT_EXPOSURE = 1.08f;
+const float PRESENT_INV_GAMMA = 1.0f / 2.18f;
 
 struct MeshVertex {
     float px, py, pz;
@@ -205,7 +205,9 @@ bool buildPresentProgram() {
         "varying vec2 vTexCoord;\n"
         "void main() {\n"
         "    vec3 color = texture2D(uSceneTex, vTexCoord).rgb * uExposure;\n"
-        "    color = color / (vec3(1.0) + color);\n"
+        "    // Use a filmic shoulder so warm fixtures keep detail instead of clipping into flat poster whites.\n"
+        "    color = max(color - vec3(0.004), vec3(0.0));\n"
+        "    color = (color * (6.2 * color + 0.5)) / (color * (6.2 * color + 1.7) + 0.06);\n"
         "    color = pow(max(color, vec3(0.0)), vec3(uInvGamma));\n"
         "    gl_FragColor = vec4(color, 1.0);\n"
         "}\n";
@@ -400,15 +402,15 @@ float toRad(float deg) {
 
 void setMatByName(const std::string& name) {
     if (name == "Boots_Cube.004") {
-        setMat(0.91f, 0.90f, 0.86f, 0.18f, 30.0f);
+        setMat(0.91f, 0.90f, 0.86f, 0.14f, 22.0f);
     } else if (name == "WhiteShirt_Cube.003") {
-        setMat(0.94f, 0.92f, 0.88f, 0.020f, 8.0f);
+        setMat(0.94f, 0.92f, 0.88f, 0.016f, 6.0f);
     } else if (name == "BluePants_Cube.001") {
-        setMat(0.10f, 0.12f, 0.17f, 0.028f, 10.0f);
+        setMat(0.10f, 0.12f, 0.17f, 0.022f, 8.0f);
     } else if (name == "Body_Cube") {
-        setMat(0.84f, 0.82f, 0.78f, 0.020f, 9.0f);
+        setMat(0.84f, 0.82f, 0.78f, 0.016f, 7.0f);
     } else {
-        setMat(0.73f, 0.72f, 0.70f, 0.035f, 10.0f);
+        setMat(0.73f, 0.72f, 0.70f, 0.028f, 8.0f);
     }
 }
 
@@ -496,9 +498,9 @@ void drawLoadedShoeMesh(float r, float g, float b) {
     for (size_t c = 0; c < shoeMesh.size(); ++c) {
         const MeshChunk& chunk = shoeMesh[c];
         if (chunk.name == "Boots_Cube.004") {
-            setMat(std::min(r * 1.04f, 1.0f), std::min(g * 1.04f, 1.0f), std::min(b * 1.02f, 1.0f), 0.22f, 30.0f);
+            setMat(std::min(r * 1.04f, 1.0f), std::min(g * 1.04f, 1.0f), std::min(b * 1.02f, 1.0f), 0.17f, 24.0f);
         } else {
-            setMat(0.92f, 0.90f, 0.86f, 0.08f, 10.0f);
+            setMat(0.92f, 0.90f, 0.86f, 0.06f, 8.0f);
         }
         glBegin(GL_TRIANGLES);
         for (size_t i = 0; i < chunk.vertices.size(); ++i) {
@@ -606,10 +608,10 @@ void applyPerspective(float fovyDeg, float aspect, float zNear, float zFar) {
 
 void setMat(float r, float g, float b, float specStrength, float shine) {
     glColor3f(r, g, b);
-    GLfloat ambient[] = { r * 0.24f, g * 0.23f, b * 0.22f, 1.0f };
-    GLfloat diffuse[] = { r, g, b, 1.0f };
-    GLfloat spec[] = { specStrength * 0.92f, specStrength * 0.94f, specStrength, 1.0f };
-    float tunedShine = std::min(shine * 1.35f, 96.0f);
+    GLfloat ambient[] = { r * 0.18f, g * 0.17f, b * 0.16f, 1.0f };
+    GLfloat diffuse[] = { r * 0.98f, g * 0.98f, b * 0.97f, 1.0f };
+    GLfloat spec[] = { specStrength * 0.74f, specStrength * 0.76f, specStrength * 0.80f, 1.0f };
+    float tunedShine = std::min(shine * 1.08f + 2.0f, 72.0f);
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
@@ -761,16 +763,16 @@ void drawCenteredText(const char* text, float centerX, float y, float z, float s
 
 void drawWarmStrip(float sx, float sy, float sz) {
     glDisable(GL_LIGHTING);
-    glColor3f(1.0f, 0.84f, 0.60f);
+    glColor3f(0.98f, 0.82f, 0.58f);
     drawBox(sx, sy, sz);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glDepthMask(GL_FALSE);
-    glColor4f(1.0f, 0.80f, 0.54f, 0.11f);
-    drawBox(sx * 1.10f, sy * 2.80f, sz * 1.10f);
-    glColor4f(1.0f, 0.94f, 0.82f, 0.07f);
-    drawBox(sx * 0.92f, sy * 4.20f, sz * 0.92f);
+    glColor4f(1.0f, 0.79f, 0.54f, 0.065f);
+    drawBox(sx * 1.06f, sy * 2.20f, sz * 1.06f);
+    glColor4f(1.0f, 0.92f, 0.80f, 0.035f);
+    drawBox(sx * 0.94f, sy * 3.10f, sz * 0.94f);
     glDepthMask(GL_TRUE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
@@ -888,13 +890,13 @@ void drawLayeredSignText(const char* text,
     glDepthMask(GL_FALSE);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glColor4f(r * 0.96f, g * 0.90f, b * 0.82f, glowAlpha * 0.52f);
-    drawCenteredText(text, centerX, y - 0.01f, z - 0.010f, scale * 1.08f);
-    glColor4f(1.0f, 0.98f, 0.92f, glowAlpha);
-    drawCenteredText(text, centerX, y, z - 0.004f, scale * 1.03f);
+    glColor4f(r * 0.94f, g * 0.89f, b * 0.82f, glowAlpha * 0.34f);
+    drawCenteredText(text, centerX, y - 0.008f, z - 0.010f, scale * 1.05f);
+    glColor4f(1.0f, 0.98f, 0.92f, glowAlpha * 0.62f);
+    drawCenteredText(text, centerX, y, z - 0.004f, scale * 1.015f);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(0.18f, 0.17f, 0.16f, 0.78f);
+    glColor4f(0.18f, 0.17f, 0.16f, 0.68f);
     drawCenteredText(text, centerX + shadowOffsetX, y - shadowOffsetY, z - 0.014f, scale);
     glColor4f(r, g, b, 1.0f);
     drawCenteredText(text, centerX, y, z, scale);
@@ -910,12 +912,12 @@ void drawFloorGlow(float radius, float r, float g, float b) {
     glDepthMask(GL_FALSE);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawSoftEllipseDecal(0.0f, 0.0f, 0.0f, radius * 1.18f, radius * 0.92f, r * 0.70f, g * 0.66f, b * 0.62f, 0.030f, 0.0f);
-    drawSoftEllipseDecal(0.0f, 0.0f, 0.0f, radius * 0.84f, radius * 0.70f, r * 0.92f, g * 0.86f, b * 0.78f, 0.040f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.0f, 0.0f, radius * 1.12f, radius * 0.88f, r * 0.62f, g * 0.58f, b * 0.54f, 0.018f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.0f, 0.0f, radius * 0.80f, radius * 0.66f, r * 0.84f, g * 0.80f, b * 0.72f, 0.022f, 0.0f);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    drawSoftEllipseDecal(0.0f, 0.0f, 0.0f, radius * 0.70f, radius * 0.56f, r, g, b, 0.040f, 0.0f);
-    drawSoftEllipseDecal(0.0f, 0.001f, 0.0f, radius * 0.34f, radius * 0.22f, 1.0f, 0.95f, 0.82f, 0.032f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.0f, 0.0f, radius * 0.62f, radius * 0.50f, r, g, b, 0.020f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.001f, 0.0f, radius * 0.28f, radius * 0.19f, 1.0f, 0.95f, 0.82f, 0.014f, 0.0f);
 
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDepthMask(GL_TRUE);
@@ -931,9 +933,9 @@ void drawSoftShadow(float x, float z, float sx, float sz, float alpha) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
 
-    drawSoftEllipseDecal(x, 0.040f, z, sx * 1.26f, sz * 1.10f, 0.09f, 0.07f, 0.06f, alpha * 0.34f, 0.0f);
-    drawSoftEllipseDecal(x, 0.043f, z, sx * 0.84f, sz * 0.76f, 0.0f, 0.0f, 0.0f, alpha, 0.0f);
-    drawSoftEllipseDecal(x + sx * 0.05f, 0.045f, z + sz * 0.10f, sx * 0.50f, sz * 0.40f, 0.0f, 0.0f, 0.0f, alpha * 0.55f, 0.0f);
+    drawSoftEllipseDecal(x, 0.040f, z, sx * 1.18f, sz * 1.02f, 0.08f, 0.07f, 0.06f, alpha * 0.24f, 0.0f);
+    drawSoftEllipseDecal(x, 0.043f, z, sx * 0.76f, sz * 0.68f, 0.0f, 0.0f, 0.0f, alpha * 1.05f, 0.0f);
+    drawSoftEllipseDecal(x + sx * 0.04f, 0.045f, z + sz * 0.08f, sx * 0.42f, sz * 0.34f, 0.0f, 0.0f, 0.0f, alpha * 0.46f, 0.0f);
 
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDepthMask(GL_TRUE);
@@ -942,20 +944,20 @@ void drawSoftShadow(float x, float z, float sx, float sz, float alpha) {
 }
 
 void drawContactShadows() {
-    drawSoftShadow(0.00f,  3.05f, 1.70f, 0.72f, 0.18f);
-    drawSoftShadow(0.00f,  3.05f, 0.92f, 0.30f, 0.08f);
-    drawSoftShadow(1.88f,  1.05f, 1.42f, 0.66f, 0.14f);
-    drawSoftShadow(1.88f,  1.05f, 0.82f, 0.28f, 0.07f);
-    drawSoftShadow(0.00f, -0.62f, 1.55f, 0.68f, 0.15f);
-    drawSoftShadow(0.00f, -0.62f, 0.88f, 0.28f, 0.08f);
+    drawSoftShadow(0.00f,  3.05f, 1.64f, 0.68f, 0.21f);
+    drawSoftShadow(0.00f,  3.05f, 0.88f, 0.28f, 0.10f);
+    drawSoftShadow(1.88f,  1.05f, 1.38f, 0.62f, 0.17f);
+    drawSoftShadow(1.88f,  1.05f, 0.78f, 0.26f, 0.09f);
+    drawSoftShadow(0.00f, -0.62f, 1.48f, 0.64f, 0.18f);
+    drawSoftShadow(0.00f, -0.62f, 0.84f, 0.26f, 0.09f);
     drawSoftShadow(-0.68f, -1.95f, 0.52f, 0.40f, 0.16f);
     drawSoftShadow( 0.68f, -1.95f, 0.52f, 0.40f, 0.16f);
-    drawSoftShadow(0.00f, -4.18f, 1.85f, 0.58f, 0.20f);
-    drawSoftShadow(0.00f, -4.08f, 1.12f, 0.20f, 0.09f);
-    drawSoftShadow(-4.35f, 5.18f, 0.46f, 0.34f, 0.22f);
-    drawSoftShadow( 4.35f, 5.18f, 0.46f, 0.34f, 0.22f);
-    drawSoftShadow(-4.35f, 5.28f, 0.18f, 0.10f, 0.10f);
-    drawSoftShadow( 4.35f, 5.28f, 0.18f, 0.10f, 0.10f);
+    drawSoftShadow(0.00f, -4.18f, 1.76f, 0.54f, 0.23f);
+    drawSoftShadow(0.00f, -4.08f, 1.04f, 0.19f, 0.10f);
+    drawSoftShadow(-4.35f, 5.18f, 0.42f, 0.30f, 0.24f);
+    drawSoftShadow( 4.35f, 5.18f, 0.42f, 0.30f, 0.24f);
+    drawSoftShadow(-4.35f, 5.28f, 0.16f, 0.09f, 0.11f);
+    drawSoftShadow( 4.35f, 5.28f, 0.16f, 0.09f, 0.11f);
 }
 
 void drawHeroFloorPass() {
@@ -965,25 +967,25 @@ void drawHeroFloorPass() {
 
     // Use bounded reflection pools instead of a full mirror so the polished floor stays believable in this fixed-function path.
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawSoftEllipseDecal(0.0f, 0.036f, 0.05f, 1.26f, 5.35f, 0.15f, 0.16f, 0.17f, 0.050f, 0.0f);
-    drawSoftEllipseDecal(0.0f, 0.036f, 0.05f, 0.72f, 4.65f, 0.30f, 0.26f, 0.22f, 0.030f, 0.0f);
-    drawSoftEllipseDecal(0.0f, 0.037f, 5.22f, 2.70f, 0.50f, 0.92f, 0.84f, 0.70f, 0.070f, 0.0f);
-    drawSoftEllipseDecal(-3.56f, 0.038f, 5.24f, 0.24f, 0.92f, 1.0f, 0.88f, 0.72f, 0.058f, 0.0f);
-    drawSoftEllipseDecal( 3.56f, 0.038f, 5.24f, 0.24f, 0.92f, 1.0f, 0.88f, 0.72f, 0.058f, 0.0f);
-    drawSoftEllipseDecal(0.0f, 0.037f, -4.70f, 1.46f, 0.36f, 0.88f, 0.82f, 0.70f, 0.045f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.036f, 0.05f, 1.18f, 5.10f, 0.15f, 0.16f, 0.17f, 0.032f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.036f, 0.05f, 0.66f, 4.40f, 0.30f, 0.26f, 0.22f, 0.020f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.037f, 5.22f, 2.52f, 0.44f, 0.92f, 0.84f, 0.70f, 0.048f, 0.0f);
+    drawSoftEllipseDecal(-3.56f, 0.038f, 5.24f, 0.20f, 0.86f, 1.0f, 0.88f, 0.72f, 0.036f, 0.0f);
+    drawSoftEllipseDecal( 3.56f, 0.038f, 5.24f, 0.20f, 0.86f, 1.0f, 0.88f, 0.72f, 0.036f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.037f, -4.70f, 1.34f, 0.32f, 0.88f, 0.82f, 0.70f, 0.032f, 0.0f);
 
-    drawReflectionPool(0.00f,  3.05f, 1.00f, 0.48f, 0.26f);
-    drawReflectionPool(1.88f,  1.05f, 0.92f, 0.44f, 0.24f);
-    drawReflectionPool(0.00f, -0.62f, 0.98f, 0.44f, 0.22f);
-    drawReflectionPool(0.00f, -4.18f, 1.34f, 0.30f, 0.28f);
-    drawReflectionPool(-2.24f, -4.35f, 0.34f, 0.18f, 0.18f);
-    drawReflectionPool( 2.24f, -4.35f, 0.34f, 0.18f, 0.18f);
-    drawReflectionPool(-4.35f,  5.18f, 0.24f, 0.15f, 0.20f);
-    drawReflectionPool( 4.35f,  5.18f, 0.24f, 0.15f, 0.20f);
+    drawReflectionPool(0.00f,  3.05f, 0.96f, 0.44f, 0.18f);
+    drawReflectionPool(1.88f,  1.05f, 0.88f, 0.40f, 0.17f);
+    drawReflectionPool(0.00f, -0.62f, 0.94f, 0.40f, 0.16f);
+    drawReflectionPool(0.00f, -4.18f, 1.26f, 0.28f, 0.20f);
+    drawReflectionPool(-2.24f, -4.35f, 0.32f, 0.16f, 0.12f);
+    drawReflectionPool( 2.24f, -4.35f, 0.32f, 0.16f, 0.12f);
+    drawReflectionPool(-4.35f,  5.18f, 0.22f, 0.14f, 0.15f);
+    drawReflectionPool( 4.35f,  5.18f, 0.22f, 0.14f, 0.15f);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    drawSoftEllipseDecal(0.0f, 0.039f, 5.28f, 1.52f, 0.18f, 1.0f, 0.95f, 0.84f, 0.040f, 0.0f);
-    drawSoftEllipseDecal(0.0f, 0.039f, -4.74f, 0.86f, 0.14f, 1.0f, 0.95f, 0.84f, 0.026f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.039f, 5.28f, 1.42f, 0.16f, 1.0f, 0.95f, 0.84f, 0.022f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.039f, -4.74f, 0.80f, 0.12f, 1.0f, 0.95f, 0.84f, 0.014f, 0.0f);
 
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDepthMask(GL_TRUE);
@@ -1013,14 +1015,14 @@ void drawVolumetricLightCone(float x, float z, float radius, float alpha) {
 }
 
 void drawStoreAtmosphere() {
-    drawVolumetricLightCone(-3.25f,  3.35f, 0.96f, 0.028f);
-    drawVolumetricLightCone( 3.25f,  3.35f, 0.96f, 0.028f);
-    drawVolumetricLightCone(-3.25f,  0.65f, 0.90f, 0.024f);
-    drawVolumetricLightCone( 3.25f,  0.65f, 0.90f, 0.024f);
-    drawVolumetricLightCone(-3.25f, -2.15f, 0.92f, 0.024f);
-    drawVolumetricLightCone( 3.25f, -2.15f, 0.92f, 0.024f);
-    drawVolumetricLightCone( 0.00f,  2.05f, 1.05f, 0.026f);
-    drawVolumetricLightCone( 0.00f, -3.45f, 1.10f, 0.026f);
+    drawVolumetricLightCone(-3.25f,  3.35f, 0.92f, 0.018f);
+    drawVolumetricLightCone( 3.25f,  3.35f, 0.92f, 0.018f);
+    drawVolumetricLightCone(-3.25f,  0.65f, 0.86f, 0.015f);
+    drawVolumetricLightCone( 3.25f,  0.65f, 0.86f, 0.015f);
+    drawVolumetricLightCone(-3.25f, -2.15f, 0.88f, 0.015f);
+    drawVolumetricLightCone( 3.25f, -2.15f, 0.88f, 0.015f);
+    drawVolumetricLightCone( 0.00f,  2.05f, 0.98f, 0.017f);
+    drawVolumetricLightCone( 0.00f, -3.45f, 1.02f, 0.017f);
 }
 
 void drawFoldedPants(float r, float g, float b) {
@@ -1711,7 +1713,9 @@ void drawWallBay(float sideX, float zCenter, bool leftSide, int mode) {
         };
         for (int i = 0; i < 8; ++i) {
             glPushMatrix();
-            glTranslatef(0.35f, 1.48f, -0.62f + i * 0.18f);
+            // Offset each hanger slightly so the rail feels hand-merchandised instead of procedurally cloned.
+            glTranslatef(0.35f + ((i % 2 == 0) ? -0.012f : 0.010f), 1.48f + ((i % 3 == 1) ? 0.012f : 0.0f), -0.62f + i * 0.18f + ((i % 3 == 0) ? -0.012f : 0.010f));
+            glRotatef((i % 2 == 0) ? -4.0f : 3.0f, 0.0f, 1.0f, 0.0f);
             drawHangingJacket(jacketColors[i][0], jacketColors[i][1], jacketColors[i][2]);
             glPopMatrix();
         }
@@ -1742,13 +1746,13 @@ void drawWallBay(float sideX, float zCenter, bool leftSide, int mode) {
             float zPos[] = { -0.46f, 0.0f, 0.46f };
             for (int c = 0; c < 3; ++c) {
                 glPushMatrix();
-                glTranslatef(0.34f, levels[i] + 0.03f, zPos[c]);
+                glTranslatef(0.34f + (i - 1) * 0.015f, levels[i] + 0.03f, zPos[c] + (c - 1) * 0.018f);
                 drawShirtStack(stackColors[c][0], stackColors[c][1], stackColors[c][2], 4);
                 glPopMatrix();
             }
 
-            glPushMatrix(); glTranslatef(0.52f, levels[i] + 0.04f, -0.24f); drawFoldedPantsStack(0.10f, 0.11f, 0.12f, 3); glPopMatrix();
-            glPushMatrix(); glTranslatef(0.52f, levels[i] + 0.04f,  0.24f); drawFoldedPantsStack(0.44f, 0.34f, 0.24f, 3); glPopMatrix();
+            glPushMatrix(); glTranslatef(0.52f, levels[i] + 0.04f, -0.24f - i * 0.012f); glRotatef(-4.0f + i * 2.5f, 0.0f, 1.0f, 0.0f); drawFoldedPantsStack(0.10f, 0.11f, 0.12f, 3); glPopMatrix();
+            glPushMatrix(); glTranslatef(0.52f, levels[i] + 0.04f,  0.24f + i * 0.010f); glRotatef(3.0f - i * 2.0f, 0.0f, 1.0f, 0.0f); drawFoldedPantsStack(0.44f, 0.34f, 0.24f, 3); glPopMatrix();
         }
 
         glPushMatrix(); glTranslatef(0.20f, 3.23f, -0.26f); drawShoePair(0.08f, 0.08f, 0.08f); glPopMatrix();
@@ -1788,10 +1792,10 @@ void drawCounter() {
 
     setMat(0.18f, 0.17f, 0.16f, 0.18f, 22.0f);
     glPushMatrix(); glTranslatef(-0.82f, 0.64f, 0.18f); drawBox(0.42f, 0.03f, 0.26f); glPopMatrix();
-    glPushMatrix(); glTranslatef(-0.82f, 0.68f, 0.18f); drawAccessoryTray(0.11f, 0.12f, 0.14f); glPopMatrix();
-    glPushMatrix(); glTranslatef(-1.34f, 0.46f, 0.16f); drawShoppingBag(0.12f, 0.12f, 0.13f); glPopMatrix();
-    glPushMatrix(); glTranslatef(-1.10f, 0.46f, 0.10f); glRotatef(14.0f, 0.0f, 1.0f, 0.0f); drawShoppingBag(0.80f, 0.78f, 0.72f); glPopMatrix();
-    glPushMatrix(); glTranslatef(-1.00f, 0.64f, -0.18f); glRotatef(-10.0f, 0.0f, 1.0f, 0.0f); drawShoppingBag(0.18f, 0.19f, 0.20f); glPopMatrix();
+    glPushMatrix(); glTranslatef(-0.80f, 0.68f, 0.16f); glRotatef(-7.0f, 0.0f, 1.0f, 0.0f); drawAccessoryTray(0.11f, 0.12f, 0.14f); glPopMatrix();
+    glPushMatrix(); glTranslatef(-1.36f, 0.46f, 0.18f); glRotatef(-9.0f, 0.0f, 1.0f, 0.0f); drawShoppingBag(0.12f, 0.12f, 0.13f); glPopMatrix();
+    glPushMatrix(); glTranslatef(-1.08f, 0.46f, 0.08f); glRotatef(18.0f, 0.0f, 1.0f, 0.0f); drawShoppingBag(0.80f, 0.78f, 0.72f); glPopMatrix();
+    glPushMatrix(); glTranslatef(-0.96f, 0.64f, -0.16f); glRotatef(-14.0f, 0.0f, 1.0f, 0.0f); drawShoppingBag(0.18f, 0.19f, 0.20f); glPopMatrix();
 
     setMat(0.05f, 0.05f, 0.05f, 0.14f, 18.0f);
     glPushMatrix(); glTranslatef(0.78f, 0.67f, 0.02f); glRotatef(-12.0f, 1.0f, 0.0f, 0.0f); drawBox(0.40f, 0.25f, 0.025f); glPopMatrix();
@@ -1836,18 +1840,18 @@ void drawCenterTable(float z, int variant) {
         glPushMatrix(); glTranslatef(-0.55f, 0.44f, -0.18f); drawShirtStack(0.90f, 0.89f, 0.86f, 5); glPopMatrix();
         glPushMatrix(); glTranslatef( 0.55f, 0.44f, -0.18f); drawShirtStack(0.14f, 0.18f, 0.28f, 5); glPopMatrix();
         glPushMatrix(); glTranslatef( 0.00f, 0.44f,  0.20f); drawShirtStack(0.32f, 0.30f, 0.28f, 4); glPopMatrix();
-        glPushMatrix(); glTranslatef(-0.44f, -0.02f, 0.06f); drawShoePair(0.08f, 0.08f, 0.08f); glPopMatrix();
-        glPushMatrix(); glTranslatef( 0.44f, -0.02f, 0.06f); drawShoePair(0.90f, 0.89f, 0.84f); glPopMatrix();
-        glPushMatrix(); glTranslatef( 0.00f, -0.03f, -0.06f); drawAccessoryTray(0.16f, 0.18f, 0.20f); glPopMatrix();
-        glPushMatrix(); glTranslatef( 0.00f, -0.01f,  0.30f); glRotatef(12.0f, 0.0f, 1.0f, 0.0f); drawShoppingBag(0.16f, 0.17f, 0.18f); glPopMatrix();
+        glPushMatrix(); glTranslatef(-0.48f, -0.02f, 0.08f); glRotatef(-8.0f, 0.0f, 1.0f, 0.0f); drawShoePair(0.08f, 0.08f, 0.08f); glPopMatrix();
+        glPushMatrix(); glTranslatef( 0.46f, -0.02f, 0.02f); glRotatef(9.0f, 0.0f, 1.0f, 0.0f); drawShoePair(0.90f, 0.89f, 0.84f); glPopMatrix();
+        glPushMatrix(); glTranslatef(-0.02f, -0.03f, -0.08f); glRotatef(-6.0f, 0.0f, 1.0f, 0.0f); drawAccessoryTray(0.16f, 0.18f, 0.20f); glPopMatrix();
+        glPushMatrix(); glTranslatef( 0.06f, -0.01f,  0.28f); glRotatef(16.0f, 0.0f, 1.0f, 0.0f); drawShoppingBag(0.16f, 0.17f, 0.18f); glPopMatrix();
     } else {
         glPushMatrix(); glTranslatef(-0.56f, 0.44f,  0.16f); drawShirtStack(0.88f, 0.87f, 0.84f, 4); glPopMatrix();
         glPushMatrix(); glTranslatef( 0.00f, 0.44f, -0.08f); drawShirtStack(0.10f, 0.11f, 0.12f, 5); glPopMatrix();
         glPushMatrix(); glTranslatef( 0.56f, 0.44f,  0.16f); drawShirtStack(0.45f, 0.34f, 0.22f, 4); glPopMatrix();
-        glPushMatrix(); glTranslatef(-0.54f, -0.02f, 0.00f); drawShoePair(0.42f, 0.27f, 0.12f); glPopMatrix();
-        glPushMatrix(); glTranslatef( 0.54f, -0.02f, 0.00f); drawShoePair(0.08f, 0.08f, 0.08f); glPopMatrix();
-        glPushMatrix(); glTranslatef( 0.00f, -0.04f, 0.00f); drawFoldedPantsStack(0.15f, 0.15f, 0.16f, 4); glPopMatrix();
-        glPushMatrix(); glTranslatef( 0.04f, -0.02f, -0.28f); drawAccessoryTray(0.13f, 0.15f, 0.17f); glPopMatrix();
+        glPushMatrix(); glTranslatef(-0.58f, -0.02f, 0.04f); glRotatef(-7.0f, 0.0f, 1.0f, 0.0f); drawShoePair(0.42f, 0.27f, 0.12f); glPopMatrix();
+        glPushMatrix(); glTranslatef( 0.52f, -0.02f, -0.02f); glRotatef(8.0f, 0.0f, 1.0f, 0.0f); drawShoePair(0.08f, 0.08f, 0.08f); glPopMatrix();
+        glPushMatrix(); glTranslatef( 0.02f, -0.04f, 0.02f); glRotatef(5.0f, 0.0f, 1.0f, 0.0f); drawFoldedPantsStack(0.15f, 0.15f, 0.16f, 4); glPopMatrix();
+        glPushMatrix(); glTranslatef( 0.06f, -0.02f, -0.30f); glRotatef(-8.0f, 0.0f, 1.0f, 0.0f); drawAccessoryTray(0.13f, 0.15f, 0.17f); glPopMatrix();
     }
 
     glPopMatrix();
@@ -1936,8 +1940,8 @@ void drawMannequin(float x, float z, float rotY, float jacketR, float jacketG, f
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
     // Push a denser heel shadow into the pedestal zone so the figure does not appear to float.
-    drawSoftEllipseDecal(0.0f, 0.043f, 0.040f, 0.185f, 0.132f, 0.0f, 0.0f, 0.0f, 0.20f, 0.0f);
-    drawSoftEllipseDecal(0.0f, 0.044f, 0.054f, 0.108f, 0.070f, 1.0f, 0.94f, 0.80f, 0.028f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.043f, 0.040f, 0.168f, 0.118f, 0.0f, 0.0f, 0.0f, 0.24f, 0.0f);
+    drawSoftEllipseDecal(0.0f, 0.044f, 0.052f, 0.092f, 0.060f, 1.0f, 0.94f, 0.80f, 0.020f, 0.0f);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
     glEnable(GL_LIGHTING);
