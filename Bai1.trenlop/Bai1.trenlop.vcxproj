@@ -77,6 +77,8 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
     <VcpkgEnableClassic>false</VcpkgEnableClassic>
+    <VcpkgAutoBootstrap>false</VcpkgAutoBootstrap>
+    <VcpkgApplocalDeps>false</VcpkgApplocalDeps>
     <VcpkgTriplet Condition="'$(Platform)'=='Win32'">x86-windows</VcpkgTriplet>
     <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows</VcpkgTriplet>
   </PropertyGroup>
@@ -145,4 +147,18 @@
   <Import Project="..\tools\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" Condition="Exists('..\tools\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets')" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="CopyVcpkgRuntimeDlls" AfterTargets="Build">
+    <PropertyGroup>
+      <StoreVcpkgRuntimeBin Condition="'$(Configuration)'=='Debug'">$(ProjectDir)..\vcpkg_installed\$(VcpkgTriplet)\debug\bin\</StoreVcpkgRuntimeBin>
+      <StoreVcpkgRuntimeBin Condition="'$(Configuration)'!='Debug'">$(ProjectDir)..\vcpkg_installed\$(VcpkgTriplet)\bin\</StoreVcpkgRuntimeBin>
+    </PropertyGroup>
+    <ItemGroup Condition="Exists('$(StoreVcpkgRuntimeBin)')">
+      <StoreVcpkgRuntimeDll Include="$(StoreVcpkgRuntimeBin)*.dll" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(StoreVcpkgRuntimeDll)"
+      DestinationFolder="$(OutDir)"
+      SkipUnchangedFiles="true"
+      Condition="'@(StoreVcpkgRuntimeDll)' != ''" />
+  </Target>
 </Project>
