@@ -1,31 +1,28 @@
 # ICON MODE Store
 
-Du an dung de dung canh cua hang thoi trang nam `ICON MODE` theo hai huong:
+Dự án dựng cảnh 3D cửa hàng thời trang nam `ICON MODE` theo hai hướng:
 
-- `C++ OpenGL`: ung dung walkthrough real-time, da migrate tu GLUT sang GLFW + GLAD.
-- `Blender Cycles`: render anh tinh photorealistic gan reference hon, phu hop khi muc tieu la anh dep tren 90%.
+- `C++ OpenGL`: Ứng dụng walkthrough real-time, đã nâng cấp shader PBR và Shadow Mapping.
+- `Blender Cycles`: Render ảnh tĩnh photorealistic với chất lượng cao (ưu tiên khi cần ảnh đẹp trên 90% giống reference).
 
-## Trang Thai Hien Tai
+## Trạng Thái Hiện Tại
 
-- Code chinh cua app OpenGL nam o `Bai1.trenlop/Main.cpp`.
+- Mã nguồn chính của app OpenGL nằm ở `Bai1.trenlop/Main.cpp`.
+- Các Shader mới nằm trong `Bai1.trenlop/shaders/` (ví dụ: `pbr.vert`).
 - Visual Studio solution: `Bai1.trenlop.slnx`.
 - Project C++: `Bai1.trenlop/Bai1.trenlop.vcxproj`.
-- Quan ly thu vien bang vcpkg manifest: `vcpkg.json`.
-- Blender render pipeline nam trong thu muc `blender/`.
-- Thu muc output render mac dinh la `renders/` va dang duoc ignore khoi git.
+- Quản lý thư viện bằng `vcpkg manifest`: `vcpkg.json`.
+- Blender render pipeline (PBR, HDRI, Area lights) nằm trong thư mục `blender/`.
+- Thư mục output render mặc định là `renders/`.
 
-## Cong Nghe
+## Công Nghệ
 
-- C++20
-- OpenGL
-- GLFW 3
-- GLAD
-- GLM
-- Assimp
-- stb_image
-- Blender Cycles cho render photorealistic
+- C++20, OpenGL 4.6 (hoặc tương thích ngược với Shader)
+- GLFW 3, GLAD, GLM, Assimp, stb_image
+- Shadow Mapping, PBR Shader
+- Blender Cycles 4.x (Photorealistic Rendering)
 
-## Cau Truc Thu Muc
+## Cấu Trúc Thư Mục
 
 ```text
 .
@@ -34,119 +31,68 @@ Du an dung de dung canh cua hang thoi trang nam `ICON MODE` theo hai huong:
 +-- Bai1.trenlop/
 |   +-- Main.cpp
 |   +-- Bai1.trenlop.vcxproj
+|   +-- shaders/
+|       +-- pbr.vert
 |   +-- floor.jpg
 |   +-- wood.jpg
 |   +-- mannequin_store.obj
 |   +-- shoe_store.obj
+|   +-- studio.hdr (Tải thủ công từ polyhaven.com)
 +-- blender/
     +-- icon_mode_cycles_scene.py
     +-- render_icon_mode.bat
     +-- README.md
 ```
 
-## Yeu Cau Cai Dat
+## Hướng Dẫn Setup Thư Viện
 
-### De chay OpenGL app
+Dự án này sử dụng `vcpkg` ở chế độ manifest để tự động cài đặt thư viện (`assimp`, `glad`, `glfw3`, `glm`).
 
-- Windows 10/11
-- Visual Studio co workload `Desktop development with C++`
-- Git
-- vcpkg dat tai `tools/vcpkg`
-
-Project dang khai bao `PlatformToolset` la `v145`. Neu Visual Studio tren may khong co toolset nay, hay retarget project trong Visual Studio sang toolset dang co san tren may.
-
-### De render anh giong reference
-
-- Blender 4.x
-- Cac asset san co trong `Bai1.trenlop/`
-
-## Cai Dependency Bang vcpkg
-
-Tu thu muc goc cua repo, chay tren Windows Command Prompt hoac PowerShell:
-
+**Bước 1: Tải và cài đặt vcpkg**
+Mở Windows Command Prompt hoặc PowerShell tại thư mục gốc của repository:
 ```bat
 git clone https://github.com/microsoft/vcpkg.git tools\vcpkg
 tools\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 ```
 
-Dependency duoc khai bao trong `vcpkg.json`:
-
-```json
-{
-  "dependencies": [
-    "assimp",
-    "glad",
-    "glfw3",
-    "glm"
-  ]
-}
-```
-
-Khi build bang Visual Studio, project se doc vcpkg manifest va cai cac dependency can thiet. Neu muon cai thu cong:
-
+**Bước 2: Cài đặt thư viện C++ (Tùy chọn, Visual Studio sẽ tự động làm)**
 ```bat
 tools\vcpkg\vcpkg.exe install --triplet x64-windows
 ```
 
-## Cach Chay OpenGL App
+**Bước 3: Chuẩn bị tài nguyên HDR cho Blender (Bắt buộc để ảnh đẹp)**
+- Truy cập https://polyhaven.com/hdris
+- Tải một file HDRI (Gợi ý: `studio_small_09_4k.hdr`)
+- Đổi tên file vừa tải thành `studio.hdr` và đặt vào thư mục `Bai1.trenlop/`
 
-1. Mo `Bai1.trenlop.slnx` bang Visual Studio.
-2. Chon configuration `Debug` hoac `Release`.
-3. Chon platform `x64`.
-4. Build solution.
-5. Run project `Bai1.trenlop`.
+## Hướng Dẫn Khởi Chạy Dự Án
 
-Neu build `Win32`, vcpkg se dung triplet `x86-windows`. Neu build `x64`, vcpkg se dung triplet `x64-windows`.
+### Khởi chạy ứng dụng C++ OpenGL
+1. Đảm bảo máy tính có Visual Studio (với workload `Desktop development with C++`).
+2. Mở file `Bai1.trenlop.slnx` bằng Visual Studio.
+3. Chọn configuration `Debug` hoặc `Release` và platform `x64`.
+4. (Lưu ý: Nếu bị lỗi Toolset, hãy mở Project Properties và Retarget `Platform Toolset` sang bản hiện có trên máy như `v143`).
+5. Chọn Build Solution.
+6. Nhấn F5 (hoặc Ctrl+F5) để chạy project `Bai1.trenlop`.
 
-## Cach Render Anh Photorealistic Bang Blender
+### Khởi chạy Render bằng Blender
+Đây là hướng được dùng để đạt chất lượng ảnh PBR + Raytracing cao nhất (giống reference).
 
-Day la huong khuyen nghi neu muc tieu la anh tinh giong reference nhat.
-
-Chay nhanh tren Windows:
-
+**Cách 1: Dùng script có sẵn (Windows)**
 ```bat
 blender\render_icon_mode.bat
 ```
 
-Hoac chay truc tiep bang Blender:
-
+**Cách 2: Chạy trực tiếp qua command line**
 ```bat
-"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe" --background --python blender\icon_mode_cycles_scene.py -- --output renders\icon_mode_cycles.png --resolution 1920 1080 --samples 256
+"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe" --background --python blender\icon_mode_cycles_scene.py -- --output renders\icon_mode_cycles.png --resolution 1920 1080 --samples 512
 ```
 
-Output mac dinh:
+Output mặc định:
+- Ảnh render tĩnh: `renders/icon_mode_cycles.png`
+- File scene Blender có thể mở lại: `renders/icon_mode_cycles.blend`
 
-- Anh render: `renders/icon_mode_cycles.png`
-- File scene Blender: `renders/icon_mode_cycles.blend`
+## Ghi Chú Cập Nhật Photorealism
 
-Co the tang chat luong bang cach tang `--samples`, vi du:
-
-```bat
-blender --background --python blender\icon_mode_cycles_scene.py -- --output renders\icon_mode_cycles.png --resolution 2560 1440 --samples 512
-```
-
-## Ghi Chu Ve Do Giong Anh Mau
-
-OpenGL real-time hien tai phu hop de di chuyen va xem scene truc tiep, nhung khong the dat do photorealistic nhu anh ray-traced neu khong viet them pipeline lon gom PBR, shadow mapping, SSAO, HDR, bloom va tone mapping.
-
-Blender Cycles la huong duoc dung trong repo de dat chat luong anh cao hon: vat lieu PBR, den am, den track, ke quan ao, ban trung bay, mannequin, poster, cay trang tri va camera storefront duoc tao tu script `blender/icon_mode_cycles_scene.py`.
-
-## Loi Thuong Gap
-
-### Khong tim thay `glfw3`, `glad`, `glm` hoac `assimp`
-
-Kiem tra lai `tools/vcpkg` da ton tai va da bootstrap:
-
-```bat
-tools\vcpkg\bootstrap-vcpkg.bat -disableMetrics
-```
-
-Sau do build lai project trong Visual Studio.
-
-### Visual Studio bao loi toolset
-
-Mo project properties va retarget `Platform Toolset` sang toolset co tren may, vi du `v143` neu dang dung Visual Studio 2022.
-
-### Lenh Blender khong chay
-
-Kiem tra Blender da duoc cai va `blender.exe` co trong PATH. Neu khong, dung duong dan day du toi `blender.exe` nhu vi du o tren.
+- **Blender**: Hệ thống đèn đã được cấu hình với Area lights, DOF (Depth of Field), PBR Materials và HDRI Environment mapping để cho ra kết quả xuất sắc.
+- **OpenGL**: Mã nguồn C++ đã được nâng cấp với Shadow mapping (sử dụng Framebuffer Object 4096x4096) và PBR Shader chuẩn bị cho quá trình kết xuất ánh sáng thực tế.

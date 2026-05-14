@@ -6,19 +6,20 @@ Use this path when the target is a still image that looks close to the reference
 
 - Blender 4.x recommended
 - Existing assets in `Bai1.trenlop/`
+- HDRI Map (Must be manually downloaded from [Polyhaven](https://polyhaven.com/hdris) and saved as `Bai1.trenlop/studio.hdr`)
 
 ## Render
 
 From the repository root:
 
 ```bash
-blender --background --python blender/icon_mode_cycles_scene.py -- --output renders/icon_mode_cycles.png --resolution 1920 1080 --samples 256
+blender --background --python blender/icon_mode_cycles_scene.py -- --output renders/icon_mode_cycles.png --resolution 1920 1080 --samples 512
 ```
 
 Windows example:
 
 ```bat
-"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe" --background --python blender\icon_mode_cycles_scene.py -- --output renders\icon_mode_cycles.png --resolution 1920 1080 --samples 256
+"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe" --background --python blender\icon_mode_cycles_scene.py -- --output renders\icon_mode_cycles.png --resolution 1920 1080 --samples 512
 ```
 
 The script also saves `renders/icon_mode_cycles.blend`, so the scene can be opened and tuned manually if needed.
@@ -26,8 +27,9 @@ The script also saves `renders/icon_mode_cycles.blend`, so the scene can be open
 ## What This Builds
 
 - Dark storefront facade with illuminated `ICON MODE` sign
-- Warm track lighting and hidden strip lights
-- Concrete walls, stone floor, rear checkout counter
-- Symmetric wall shelving, folded apparel, hanging shirts, shoes
+- Environment mapping using HDRI for realistic ambient lighting
+- Warm track lighting, Area lights replacing point lights, and hidden strip lights
+- Concrete walls, wood floor (`wood.jpg`), rear checkout counter
+- Symmetric wall shelving, folded apparel, hanging shirts, shoes (`shoe_store.obj`)
 - Front mannequins, posters, plants, central display tables
-- Cycles renderer with denoising, Filmic tone mapping, and PBR-style materials
+- Cycles renderer with denoising, Filmic tone mapping, Depth of Field (DOF), and PBR materials

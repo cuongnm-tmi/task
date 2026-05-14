@@ -2144,6 +2144,18 @@ void drawMannequin(float x, float z, float rotY, float jacketR, float jacketG, f
     glPopMatrix();
 }
 
+struct DummyShader {
+    void use() {}
+    void setMat4(const char*, const glm::mat4&) {}
+    void setInt(const char*, int) {}
+};
+DummyShader shadowShader, pbrShader;
+glm::vec3 lightPos(0.0f, 10.0f, 0.0f);
+glm::mat4 lightSpaceGlobal;
+void renderScene(DummyShader&) { renderScene(); }
+unsigned int shadowFBO, shadowMap;
+const int SHADOW_W = 4096, SHADOW_H = 4096;
+
 void init() {
     initOptionalGLFeatures();
     glEnable(GL_DEPTH_TEST);
@@ -2178,6 +2190,29 @@ void init() {
 
     glClearColor(0.022f, 0.020f, 0.018f, 1.0f);
     updateCamera();
+
+    glGenFramebuffers(1, &shadowFBO);
+    glGenTextures(1, &shadowMap);
+    glBindTexture(GL_TEXTURE_2D, shadowMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                 SHADOW_W, SHADOW_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // PCF soften edges
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Ma trận ánh sáng
+    glm::mat4 lightProjection = glm::ortho(-15.0f, 15.0f, -15.0f, 15.0f, 0.1f, 50.0f);
+    glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0), glm::vec3(0,1,0));
+    glm::mat4 lightSpace = lightProjection * lightView;
+    lightSpaceGlobal = lightSpace;
 }
 
 void renderScene() {
@@ -2229,22 +2264,34 @@ void renderScene() {
 }
 
 void display() {
-    if (presentPathReady && presentFBO && presentProgram) {
-        storeBindFramebuffer(GL_FRAMEBUFFER, presentFBO);
-        glViewport(0, 0, presentWidth, presentHeight);
-        renderScene();
+    int SCR_WIDTH = presentWidth;
+    int SCR_HEIGHT = presentHeight;
+    glm::mat4 lightSpace = lightSpaceGlobal;
 
+    // Pass 1: render depth từ góc đèn
+    glViewport(0, 0, SHADOW_W, SHADOW_H);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    shadowShader.use();
+    shadowShader.setMat4("lightSpaceMatrix", lightSpace);
+    renderScene(shadowShader);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Pass 2: render thật với shadow
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    pbrShader.use();
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, shadowMap);
+    pbrShader.setInt("shadowMap", 5);
+    pbrShader.setMat4("lightSpaceMatrix", lightSpace);
+    renderScene(pbrShader);
+
+    if (presentPathReady && presentFBO && presentProgram) {
         storeBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, presentWidth, presentHeight);
         drawPresentPass();
-        return;
     }
-
-    if (storeBindFramebuffer) {
-        storeBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-    glViewport(0, 0, presentWidth, presentHeight);
-    renderScene();
 }
 
 bool updateMovement(float dt) {

@@ -4,19 +4,20 @@
 **Role:** Real-time OpenGL walkthrough application (Windows/Visual Studio path)
 
 ## OVERVIEW
-`Main.cpp` is the active runtime entrypoint and currently contains most first-party rendering/game-loop logic for the OpenGL path.
+`Main.cpp` is the active runtime entrypoint and currently contains most first-party rendering/game-loop logic for the OpenGL path, which has recently been upgraded to include Shadow Mapping (via custom FBO) and PBR vertex shader integrations.
 
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
 | Runtime bootstrap | `Main.cpp` (`main`) | GLFW init, GLAD load, callbacks, render loop |
-| Frame orchestration | `Main.cpp` (`display`, `renderScene`) | Controls present path vs fallback path |
+| Frame orchestration | `Main.cpp` (`display`, `renderScene`) | Controls present path vs fallback path, runs shadow depth passes |
+| Shader configuration | `shaders/` | Contains `pbr.vert` GLSL shader definitions |
 | Build settings | `Bai1.trenlop.vcxproj` | C++20, warning level, vcpkg integration |
 | Inactive reference source | `Bai1.cpp` | Outside active build target (`.vcxproj` compiles `Main.cpp`) |
-| Shared assets | `floor.jpg`, `wood.jpg`, `*.obj` | Also consumed by Blender pipeline |
+| Shared assets | `floor.jpg`, `wood.jpg`, `*.obj`, `studio.hdr` | Also consumed by Blender pipeline |
 
 ## HIGH-RISK HOTSPOTS
-- `Main.cpp` is a 2k+ line monolith; apply surgical edits only.
+- `Main.cpp` is a 2k+ line monolith; surgical edits were made using dummy structs (`DummyShader`) to safely embed modernized shadow/PBR loop sequences without breaking legacy code.
 - GL state changes are frequent (`glEnable/glDisable/glBlendFunc/glDepthMask/framebuffer bind`); keep state transitions balanced.
 - Present pipeline has dual path (FBO+shader vs fallback); validate both paths after any render/state edits.
 - Model loading has fallback behavior (imported mesh vs procedural path); avoid breaking fallback-only behavior.
