@@ -52,8 +52,8 @@
 #define GL_RGBA16F_ARB 0x881A
 #endif
 
-float camX = 0.0f, camY = 1.62f, camZ = 10.90f;
-float yaw = -90.0f, pitch = 9.0f;
+float camX = 0.0f, camY = 1.52f, camZ = 13.65f;
+float yaw = -90.0f, pitch = -3.6f;
 float lookX, lookY, lookZ;
 float speed = 3.0f;
 
@@ -106,7 +106,7 @@ int presentWidth = 1;
 int presentHeight = 1;
 
 const float PRESENT_EXPOSURE = 1.08f;
-const float PRESENT_INV_GAMMA = 1.0f / 2.22f;
+const float PRESENT_INV_GAMMA = 1.0f / 2.24f;
 
 struct MeshVertex {
     float px, py, pz;
@@ -541,10 +541,60 @@ void drawStorefrontHeaderOverlay() {
     glVertex2f(-0.98f, 0.704f); glVertex2f(0.98f, 0.704f);
     glEnd();
 
-    drawLayeredSignText("ICON MODE", 0.0f, 0.815f, 0.0f, 0.00235f,
+    drawLayeredSignText("ICON MODE", 0.0f, 0.828f, 0.0f, 0.00086f,
                         1.0f, 0.98f, 0.92f, 0.46f, 0.006f, 0.008f);
-    drawLayeredSignText("MEN'S WEAR", 0.0f, 0.735f, 0.0f, 0.00105f,
+    drawLayeredSignText("MEN'S WEAR", 0.0f, 0.742f, 0.0f, 0.00042f,
                         0.92f, 0.90f, 0.86f, 0.30f, 0.004f, 0.006f);
+
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopAttrib();
+}
+
+void drawCinematicGradeOverlay() {
+    glUseProgram(0);
+    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_TEXTURE_BIT | GL_CURRENT_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+
+    glBegin(GL_QUADS);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.08f);
+    glVertex2f(-1.0f, -1.0f); glVertex2f(-0.62f, -1.0f);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.00f);
+    glVertex2f(-0.28f, 1.0f); glVertex2f(-1.0f, 1.0f);
+
+    glColor4f(0.0f, 0.0f, 0.0f, 0.08f);
+    glVertex2f(1.0f, -1.0f); glVertex2f(0.62f, -1.0f);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.00f);
+    glVertex2f(0.28f, 1.0f); glVertex2f(1.0f, 1.0f);
+
+    glColor4f(0.0f, 0.0f, 0.0f, 0.04f);
+    glVertex2f(-1.0f, -1.0f); glVertex2f(1.0f, -1.0f);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.00f);
+    glVertex2f(1.0f, -0.38f); glVertex2f(-1.0f, -0.38f);
+
+    glColor4f(1.0f, 0.78f, 0.48f, 0.020f);
+    glVertex2f(-1.0f, 0.18f); glVertex2f(1.0f, 0.18f);
+    glColor4f(1.0f, 0.78f, 0.48f, 0.00f);
+    glVertex2f(1.0f, -0.42f); glVertex2f(-1.0f, -0.42f);
+    glEnd();
 
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
@@ -770,7 +820,7 @@ void applyPerspective(float fovyDeg, float aspect, float zNear, float zFar) {
 
 void setMat(float r, float g, float b, float specStrength, float shine) {
     glColor3f(r, g, b);
-    GLfloat ambient[] = { r * 0.18f, g * 0.17f, b * 0.16f, 1.0f };
+    GLfloat ambient[] = { r * 0.34f, g * 0.320f, b * 0.295f, 1.0f };
     GLfloat diffuse[] = { r * 0.98f, g * 0.98f, b * 0.97f, 1.0f };
     GLfloat spec[] = { specStrength * 0.74f, specStrength * 0.76f, specStrength * 0.80f, 1.0f };
     float tunedShine = std::min(shine * 1.08f + 2.0f, 72.0f);
@@ -990,7 +1040,7 @@ void drawText(const char* text, float x, float y, float z, float scale) {
     glPushMatrix();
     glTranslatef(x, y, z);
     glScalef(scale, scale, scale);
-    glLineWidth(2.2f);
+    glLineWidth(4.2f);
     glBegin(GL_LINES);
     float cursor = 0.0f;
     for (const char* c = text; *c != '\0'; ++c) {
@@ -1378,8 +1428,8 @@ void setupSpotlight(GLenum lightID,
     glEnable(lightID);
     GLfloat pos[] = { px, py, pz, 1.0f };
     GLfloat dir[] = { dx, dy, dz };
-    GLfloat diff[] = { 1.28f, 1.14f, 0.90f, 1.0f };
-    GLfloat spec[] = { 0.52f, 0.48f, 0.40f, 1.0f };
+    GLfloat diff[] = { 1.18f, 1.02f, 0.78f, 1.0f };
+    GLfloat spec[] = { 0.48f, 0.42f, 0.34f, 1.0f };
     GLfloat amb[]  = { 0.00f, 0.00f, 0.00f, 1.0f };
 
     glLightfv(lightID, GL_POSITION, pos);
@@ -1395,7 +1445,7 @@ void setupSpotlight(GLenum lightID,
 }
 
 void setupLightingRig() {
-    GLfloat ambient[] = { 0.18f, 0.165f, 0.145f, 1.0f };
+    GLfloat ambient[] = { 0.180f, 0.164f, 0.142f, 1.0f };
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
     setupSpotlight(GL_LIGHT0, -4.10f, 4.16f,  3.60f,  0.62f, -1.0f, -0.20f, 31.0f, 18.0f);
@@ -1601,12 +1651,12 @@ void drawTrackRail(float x) {
 void drawCeilingPanels() {
     float panelZ[] = { 3.75f, 2.15f, 0.55f, -1.05f, -2.65f, -4.05f };
     for (int i = 0; i < 6; ++i) {
-        setMat(0.06f, 0.055f, 0.05f, 0.08f, 6.0f);
+        setMat(0.038f, 0.036f, 0.033f, 0.07f, 6.0f);
         glPushMatrix(); glTranslatef(0.0f, CEILING_Y - 0.02f, panelZ[i]); drawBox(9.75f, 0.026f, 0.50f); glPopMatrix();
 
         glPushMatrix();
         glTranslatef(0.0f, CEILING_Y - 0.035f, panelZ[i]);
-        drawWarmStrip(9.10f, 0.010f, 0.26f);
+        drawWarmStrip(8.70f, 0.006f, 0.050f);
         glPopMatrix();
     }
 
@@ -1623,7 +1673,7 @@ void drawFittingMirror(float x, float z, float rotY) {
 
     setMat(0.07f, 0.07f, 0.07f, 0.12f, 10.0f);
     glPushMatrix(); drawBox(1.12f, 2.42f, 0.08f); glPopMatrix();
-    setMat(0.16f, 0.13f, 0.10f, 0.14f, 16.0f);
+    setMat(0.095f, 0.088f, 0.078f, 0.14f, 16.0f);
     glPushMatrix(); glTranslatef(0.0f, 0.0f, 0.018f); drawBox(0.98f, 2.28f, 0.038f); glPopMatrix();
 
     glPushMatrix();
@@ -1708,7 +1758,7 @@ void drawFramedPoster(float x, float y, float z, float rotY) {
 
     setMat(0.06f, 0.06f, 0.06f, 0.10f, 10.0f);
     drawBox(0.92f, 1.52f, 0.05f);
-    setMat(0.16f, 0.13f, 0.10f, 0.08f, 8.0f);
+    setMat(0.090f, 0.084f, 0.076f, 0.08f, 8.0f);
     glPushMatrix(); glTranslatef(0.0f, 0.0f, 0.015f); drawBox(0.82f, 1.42f, 0.02f); glPopMatrix();
     glPushMatrix(); glTranslatef(0.0f, 0.0f, 0.026f); drawGlassPanel(0.74f, 1.34f, 0.86f, 0.88f, 0.92f, 0.16f); glPopMatrix();
 
@@ -1739,11 +1789,11 @@ void drawFrontAccentShelf(float x, float z, bool leftSide) {
     glTranslatef(x, 1.56f, z);
     if (!leftSide) glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 
-    setMat(0.08f, 0.065f, 0.045f, 0.08f, 8.0f);
+    setMat(0.055f, 0.054f, 0.050f, 0.08f, 8.0f);
     glPushMatrix(); glTranslatef(0.0f, -0.02f, 0.0f); drawBox(0.22f, 0.04f, 1.30f); glPopMatrix();
     glPushMatrix(); glTranslatef(0.0f, 0.42f, 0.0f); drawBox(0.20f, 0.04f, 1.18f); glPopMatrix();
-    glPushMatrix(); glTranslatef(0.0f, 0.004f, 0.0f); setMat(0.18f, 0.14f, 0.10f, 0.14f, 16.0f); drawBox(0.205f, 0.010f, 1.22f); glPopMatrix();
-    glPushMatrix(); glTranslatef(0.0f, 0.444f, 0.0f); setMat(0.18f, 0.14f, 0.10f, 0.14f, 16.0f); drawBox(0.186f, 0.010f, 1.10f); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 0.004f, 0.0f); setMat(0.082f, 0.067f, 0.047f, 0.14f, 16.0f); drawBox(0.205f, 0.010f, 1.22f); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 0.444f, 0.0f); setMat(0.082f, 0.067f, 0.047f, 0.14f, 16.0f); drawBox(0.186f, 0.010f, 1.10f); glPopMatrix();
 
     glPushMatrix(); glTranslatef(-0.02f, 0.03f, -0.34f); drawFoldedPantsStack(0.88f, 0.87f, 0.84f, 3); glPopMatrix();
     glPushMatrix(); glTranslatef(-0.02f, 0.03f, 0.02f); drawFoldedPantsStack(0.12f, 0.13f, 0.15f, 3); glPopMatrix();
@@ -1777,7 +1827,7 @@ void drawFloorTileLines() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
     glLineWidth(1.0f);
-    glColor4f(0.68f, 0.62f, 0.54f, 0.14f);
+    glColor4f(0.58f, 0.55f, 0.50f, 0.11f);
 
     glBegin(GL_LINES);
     for (float x = -6.25f; x <= 6.25f; x += 1.18f) {
@@ -1801,7 +1851,7 @@ void drawConcretePanelLines() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
     glLineWidth(1.0f);
-    glColor4f(0.58f, 0.54f, 0.48f, 0.12f);
+    glColor4f(0.46f, 0.44f, 0.40f, 0.08f);
 
     glBegin(GL_LINES);
     for (float y = 0.85f; y <= 3.65f; y += 0.72f) {
@@ -1849,20 +1899,20 @@ void drawFacadeOpeningFrame() {
 }
 
 void drawFloor() {
-    setMat(0.48f, 0.455f, 0.415f, 0.12f, 10.0f);
+    setMat(0.44f, 0.415f, 0.365f, 0.10f, 9.0f);
     glPushMatrix();
-    drawTexturedQuadXZ(18.0f, 20.0f, 5.2f, 5.6f, floorTex);
+    drawTexturedQuadXZ(18.0f, 20.0f, 2.0f, 2.2f, floorTex);
     glPopMatrix();
-    setMat(0.30f, 0.285f, 0.255f, 0.14f, 18.0f);
-    glPushMatrix(); glTranslatef(0.0f, 0.006f, 0.08f); drawBox(2.56f, 0.004f, 10.10f); glPopMatrix();
+    setMat(0.430f, 0.410f, 0.378f, 0.08f, 8.0f);
+    glPushMatrix(); glTranslatef(0.0f, 0.008f, 0.08f); drawBox(17.90f, 0.006f, 19.90f); glPopMatrix();
     drawFloorTileLines();
 
-    setMat(0.22f, 0.205f, 0.180f, 0.12f, 14.0f);
-    glPushMatrix(); glTranslatef(0.0f, 0.014f, 0.05f); drawBox(2.78f, 0.020f, 10.28f); glPopMatrix();
-    setMat(0.30f, 0.280f, 0.245f, 0.10f, 10.0f);
-    glPushMatrix(); glTranslatef(0.0f, 0.024f, 0.05f); drawBox(2.92f, 0.008f, 10.42f); glPopMatrix();
+    setMat(0.360f, 0.342f, 0.312f, 0.10f, 12.0f);
+    glPushMatrix(); glTranslatef(0.0f, 0.014f, 0.05f); drawBox(2.52f, 0.010f, 9.80f); glPopMatrix();
+    setMat(0.420f, 0.398f, 0.360f, 0.08f, 8.0f);
+    glPushMatrix(); glTranslatef(0.0f, 0.021f, 0.05f); drawBox(2.66f, 0.006f, 9.96f); glPopMatrix();
 
-    setMat(0.34f, 0.315f, 0.270f, 0.06f, 5.0f);
+    setMat(0.28f, 0.265f, 0.238f, 0.05f, 5.0f);
     glPushMatrix(); glTranslatef(0.0f, 0.010f, STORE_FRONT_Z - 0.12f); drawBox(8.85f, 0.020f, 0.36f); glPopMatrix();
 
     glPushMatrix(); glTranslatef(-3.25f, 0.012f,  3.30f); drawFloorGlow(1.10f, 1.0f, 0.86f, 0.64f); glPopMatrix();
@@ -1878,7 +1928,7 @@ void drawFloor() {
 }
 
 void drawArchitecture() {
-    setMat(0.23f, 0.215f, 0.190f, 0.07f, 7.0f);
+    setMat(0.205f, 0.198f, 0.186f, 0.06f, 7.0f);
     glBegin(GL_QUADS);
     glNormal3f(0.0f, 0.0f, 1.0f);
     glVertex3f(-STORE_HALF_W, 0.0f, STORE_BACK_Z); glVertex3f(STORE_HALF_W, 0.0f, STORE_BACK_Z);
@@ -1893,7 +1943,7 @@ void drawArchitecture() {
     glVertex3f(STORE_HALF_W, CEILING_Y, STORE_FRONT_Z); glVertex3f(STORE_HALF_W, CEILING_Y, STORE_BACK_Z);
     glEnd();
 
-    setMat(0.13f, 0.120f, 0.105f, 0.05f, 5.0f);
+    setMat(0.115f, 0.110f, 0.102f, 0.05f, 5.0f);
     glBegin(GL_QUADS);
     glNormal3f(0.0f, -1.0f, 0.0f);
     glVertex3f(-STORE_HALF_W, CEILING_Y, STORE_BACK_Z); glVertex3f(STORE_HALF_W, CEILING_Y, STORE_BACK_Z);
@@ -1905,6 +1955,13 @@ void drawArchitecture() {
     setMat(0.05f, 0.05f, 0.048f, 0.10f, 8.0f);
     glPushMatrix(); glTranslatef(-5.45f, 1.98f, STORE_FRONT_Z + 0.02f); drawBox(0.86f, 3.96f, 0.22f); glPopMatrix();
     glPushMatrix(); glTranslatef( 5.45f, 1.98f, STORE_FRONT_Z + 0.02f); drawBox(0.86f, 3.96f, 0.22f); glPopMatrix();
+
+    setMat(0.125f, 0.120f, 0.112f, 0.06f, 6.0f);
+    glPushMatrix(); glTranslatef(-5.72f, 1.72f, STORE_FRONT_Z - 0.48f); drawBox(0.34f, 3.42f, 0.86f); glPopMatrix();
+    glPushMatrix(); glTranslatef( 5.72f, 1.72f, STORE_FRONT_Z - 0.48f); drawBox(0.34f, 3.42f, 0.86f); glPopMatrix();
+    setMat(0.040f, 0.040f, 0.038f, 0.10f, 8.0f);
+    glPushMatrix(); glTranslatef(-5.48f, 1.75f, STORE_FRONT_Z - 0.48f); drawBox(0.055f, 3.48f, 0.92f); glPopMatrix();
+    glPushMatrix(); glTranslatef( 5.48f, 1.75f, STORE_FRONT_Z - 0.48f); drawBox(0.055f, 3.48f, 0.92f); glPopMatrix();
 
     setMat(0.05f, 0.05f, 0.05f, 0.10f, 10.0f);
     glPushMatrix(); glTranslatef(-4.62f, 1.98f, STORE_FRONT_Z - 0.05f); drawBox(0.16f, 3.92f, 0.18f); glPopMatrix();
@@ -1924,9 +1981,9 @@ void drawArchitecture() {
 
     drawCeilingPanels();
 
-    drawLayeredSignText("ICON MODE", 0.00f, 3.76f, STORE_FRONT_Z + 0.088f, 0.00455f,
+    drawLayeredSignText("ICON MODE", 0.00f, 3.82f, STORE_FRONT_Z + 0.088f, 0.00278f,
                         1.0f, 0.99f, 0.97f, 0.22f, 0.03f, 0.02f);
-    drawLayeredSignText("MEN'S WEAR", 0.00f, 3.42f, STORE_FRONT_Z + 0.088f, 0.00170f,
+    drawLayeredSignText("MEN'S WEAR", 0.00f, 3.43f, STORE_FRONT_Z + 0.088f, 0.00124f,
                         0.84f, 0.83f, 0.81f, 0.16f, 0.03f, 0.02f);
 
     setMat(0.11f, 0.10f, 0.09f, 0.08f, 6.0f);
@@ -1968,7 +2025,7 @@ void drawWallBay(float sideX, float zCenter, bool leftSide, int mode) {
     glTranslatef(sideX, 0.0f, zCenter);
     if (!leftSide) glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 
-    setMat(0.06f, 0.06f, 0.055f, 0.06f, 4.0f);
+    setMat(0.052f, 0.050f, 0.046f, 0.06f, 4.0f);
     glPushMatrix(); glTranslatef(0.05f, 2.00f, 0.0f); drawBox(0.08f, 3.95f, 1.90f); glPopMatrix();
 
     setMat(0.05f, 0.05f, 0.05f, 0.08f, 8.0f);
@@ -1976,12 +2033,12 @@ void drawWallBay(float sideX, float zCenter, bool leftSide, int mode) {
     glPushMatrix(); glTranslatef(0.68f, 1.98f,  0.83f); drawBox(0.04f, 3.70f, 0.04f); glPopMatrix();
     glPushMatrix(); glTranslatef(0.36f, 3.63f, 0.0f); drawBox(0.68f, 0.05f, 1.72f); glPopMatrix();
 
-    setMat(0.10f, 0.07f, 0.05f, 0.08f, 8.0f);
+    setMat(0.064f, 0.058f, 0.048f, 0.08f, 8.0f);
     glPushMatrix(); glTranslatef(0.36f, 0.40f, 0.0f); drawBox(0.60f, 0.78f, 1.66f); glPopMatrix();
     setMat(0.03f, 0.03f, 0.03f, 0.05f, 4.0f);
     glPushMatrix(); glTranslatef(0.36f, 0.08f, 0.0f); drawBox(0.52f, 0.12f, 1.46f); glPopMatrix();
 
-    setMat(0.13f, 0.095f, 0.065f, 0.07f, 8.0f);
+    setMat(0.076f, 0.062f, 0.044f, 0.07f, 8.0f);
     glPushMatrix(); glTranslatef(0.34f, 3.18f, 0.0f); drawBox(0.56f, 0.07f, 1.58f); glPopMatrix();
     glPushMatrix(); glTranslatef(0.60f, 3.12f, 0.0f); drawWarmStrip(0.02f, 0.012f, 1.45f); glPopMatrix();
 
@@ -2019,7 +2076,7 @@ void drawWallBay(float sideX, float zCenter, bool leftSide, int mode) {
             glPopMatrix();
         }
 
-        setMat(0.13f, 0.095f, 0.065f, 0.07f, 8.0f);
+        setMat(0.076f, 0.062f, 0.044f, 0.07f, 8.0f);
         glPushMatrix(); glTranslatef(0.34f, 0.92f, 0.0f); drawBox(0.54f, 0.05f, 1.54f); glPopMatrix();
         glPushMatrix(); glTranslatef(0.34f, 0.86f, 0.0f); drawWarmStrip(0.02f, 0.010f, 1.40f); glPopMatrix();
 
@@ -2038,7 +2095,7 @@ void drawWallBay(float sideX, float zCenter, bool leftSide, int mode) {
         };
 
         for (int i = 0; i < 3; ++i) {
-            setMat(0.13f, 0.095f, 0.065f, 0.07f, 8.0f);
+            setMat(0.076f, 0.062f, 0.044f, 0.07f, 8.0f);
             glPushMatrix(); glTranslatef(0.34f, levels[i], 0.0f); drawBox(0.54f, 0.05f, 1.52f); glPopMatrix();
             glPushMatrix(); glTranslatef(0.60f, levels[i] - 0.04f, 0.0f); drawWarmStrip(0.02f, 0.010f, 1.38f); glPopMatrix();
 
@@ -2076,7 +2133,7 @@ void drawCounter() {
     setMat(0.03f, 0.03f, 0.03f, 0.14f, 14.0f);
     glPushMatrix(); glTranslatef(0.0f, -0.39f, 0.08f); drawBox(3.06f, 0.08f, 0.44f); glPopMatrix();
 
-    setMat(0.12f, 0.09f, 0.06f, 0.06f, 6.0f);
+    setMat(0.052f, 0.044f, 0.034f, 0.06f, 6.0f);
     glPushMatrix();
     glTranslatef(0.0f, 0.0f, 0.378f);
     extern GLuint sceneProgram;
@@ -2086,7 +2143,7 @@ void drawCounter() {
     glPopMatrix();
 
     for (float x = -1.58f; x <= 1.58f; x += 0.090f) {
-        setMat(0.25f, 0.18f, 0.12f, 0.05f, 5.0f);
+        setMat(0.105f, 0.080f, 0.054f, 0.05f, 5.0f);
         glPushMatrix(); glTranslatef(x, -0.02f, 0.389f); drawBox(0.042f, 0.74f, 0.028f); glPopMatrix();
     }
 
@@ -2130,10 +2187,10 @@ void drawCenterTable(float z, int variant) {
     glPushMatrix(); glTranslatef(-width * 0.5f, -0.04f, 0.0f); drawBox(0.03f, 0.03f, depth); glPopMatrix();
     glPushMatrix(); glTranslatef( width * 0.5f, -0.04f, 0.0f); drawBox(0.03f, 0.03f, depth); glPopMatrix();
 
-    setMat(0.10f, 0.10f, 0.095f, 0.08f, 8.0f);
+    setMat(0.052f, 0.050f, 0.046f, 0.08f, 8.0f);
     glPushMatrix(); glTranslatef(0.0f, 0.08f, 0.0f); drawBox(width * 0.92f, 0.02f, depth * 0.70f); glPopMatrix();
 
-    setMat(0.13f, 0.12f, 0.11f, 0.18f, 24.0f);
+    setMat(0.055f, 0.052f, 0.048f, 0.18f, 24.0f);
     glPushMatrix(); glTranslatef(0.0f, 0.39f, 0.0f); drawBox(width, 0.060f, depth); glPopMatrix();
     setMat(0.07f, 0.07f, 0.065f, 0.10f, 10.0f);
     glPushMatrix(); glTranslatef(0.0f, -0.08f, 0.0f); drawBox(width * 0.90f, 0.040f, depth * 0.82f); glPopMatrix();
@@ -2160,77 +2217,62 @@ void drawCenterTable(float z, int variant) {
 }
 
 void drawProceduralMannequinBody(float jacketR, float jacketG, float jacketB) {
-    setMat(0.12f, 0.13f, 0.15f, 0.050f, 10.0f);
-    glPushMatrix(); glTranslatef(-0.10f, 0.18f, 0.02f); drawCylinderY(0.058f, 0.048f, 0.54f, 18); glPopMatrix();
-    glPushMatrix(); glTranslatef(-0.09f, 0.72f, 0.01f); drawCylinderY(0.078f, 0.060f, 0.50f, 18); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.10f, 0.18f, 0.02f); drawCylinderY(0.058f, 0.048f, 0.54f, 18); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.09f, 0.72f, 0.01f); drawCylinderY(0.078f, 0.060f, 0.50f, 18); glPopMatrix();
+    const float darkR = 0.075f;
+    const float darkG = 0.080f;
+    const float darkB = 0.090f;
+    const float skinR = 0.78f;
+    const float skinG = 0.75f;
+    const float skinB = 0.69f;
 
-    setMat(0.07f, 0.08f, 0.10f, 0.032f, 6.0f);
-    glPushMatrix(); glTranslatef(-0.10f, 0.67f, 0.074f); drawScaledSphere(0.006f, 0.490f, 0.007f, 14, 10); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.10f, 0.67f, 0.074f); drawScaledSphere(0.006f, 0.490f, 0.007f, 14, 10); glPopMatrix();
+    setMat(darkR, darkG, darkB, 0.050f, 10.0f);
+    glPushMatrix(); glTranslatef(-0.090f, 0.17f, 0.018f); drawCylinderY(0.044f, 0.055f, 0.57f, 22); glPopMatrix();
+    glPushMatrix(); glTranslatef(-0.080f, 0.71f, 0.012f); drawCylinderY(0.060f, 0.074f, 0.49f, 22); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.090f, 0.17f, 0.018f); drawCylinderY(0.044f, 0.055f, 0.57f, 22); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.080f, 0.71f, 0.012f); drawCylinderY(0.060f, 0.074f, 0.49f, 22); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.12f, 0.016f); drawScaledSphere(0.178f, 0.065f, 0.096f, 28, 16); glPopMatrix();
 
-    setMat(0.80f, 0.78f, 0.74f, 0.034f, 12.0f);
-    glPushMatrix(); glTranslatef(0.0f, 1.18f, 0.00f); drawScaledSphere(0.22f, 0.09f, 0.12f, 24, 16); glPopMatrix();
-    glPushMatrix(); glTranslatef(0.0f, 1.50f, 0.03f); drawScaledSphere(0.17f, 0.32f, 0.10f, 28, 18); glPopMatrix();
-    glPushMatrix(); glTranslatef(0.0f, 1.62f, 0.105f); drawRoundedBox(0.10f, 0.14f, 0.018f, 0.012f); glPopMatrix();
+    setMat(0.150f, 0.155f, 0.160f, 0.030f, 6.0f);
+    glPushMatrix(); glTranslatef(-0.072f, 0.63f, 0.086f); drawRoundedBox(0.010f, 0.760f, 0.010f, 0.003f); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.072f, 0.63f, 0.086f); drawRoundedBox(0.010f, 0.760f, 0.010f, 0.003f); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.10f, 0.118f); drawRoundedBox(0.170f, 0.026f, 0.022f, 0.005f); glPopMatrix();
 
-    setMat(0.93f, 0.92f, 0.89f, 0.026f, 7.0f);
-    glPushMatrix(); glTranslatef(0.0f, 1.47f, 0.125f); drawRoundedBox(0.11f, 0.18f, 0.016f, 0.012f); glPopMatrix();
+    setMat(jacketR * 0.82f, jacketG * 0.82f, jacketB * 0.86f, 0.055f, 9.0f);
+    glPushMatrix(); glTranslatef(0.0f, 1.48f, 0.010f); drawScaledSphere(0.200f, 0.335f, 0.096f, 32, 20); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.70f, 0.008f); drawScaledSphere(0.250f, 0.052f, 0.088f, 30, 16); glPopMatrix();
+    glPushMatrix(); glTranslatef(-0.088f, 1.43f, 0.086f); drawRoundedBox(0.120f, 0.540f, 0.054f, 0.016f); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.088f, 1.43f, 0.086f); drawRoundedBox(0.120f, 0.540f, 0.054f, 0.016f); glPopMatrix();
 
-    setMat(jacketR * 0.90f, jacketG * 0.90f, jacketB * 0.92f, 0.050f, 7.0f);
-    glPushMatrix(); glTranslatef(0.0f, 1.40f, 0.000f); drawScaledSphere(0.126f, 0.255f, 0.064f, 24, 16); glPopMatrix();
-    setMat(std::min(jacketR * 1.02f, 1.0f), std::min(jacketG * 1.02f, 1.0f), std::min(jacketB * 1.01f, 1.0f), 0.074f, 10.0f);
-    glPushMatrix(); glTranslatef(-0.085f, 1.46f, 0.02f); drawScaledSphere(0.125f, 0.360f, 0.078f, 28, 18); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.085f, 1.46f, 0.02f); drawScaledSphere(0.125f, 0.360f, 0.078f, 28, 18); glPopMatrix();
-    glPushMatrix(); glTranslatef(0.0f, 1.39f, 0.010f); drawScaledSphere(0.138f, 0.250f, 0.082f, 24, 16); glPopMatrix();
-    glPushMatrix(); glTranslatef(-0.185f, 1.67f, 0.005f); drawScaledSphere(0.090f, 0.060f, 0.085f, 20, 14); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.185f, 1.67f, 0.005f); drawScaledSphere(0.090f, 0.060f, 0.085f, 20, 14); glPopMatrix();
+    setMat(0.90f, 0.89f, 0.84f, 0.030f, 8.0f);
+    glPushMatrix(); glTranslatef(0.0f, 1.47f, 0.140f); drawRoundedBox(0.130f, 0.500f, 0.024f, 0.010f); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.725f, 0.146f); drawRoundedBox(0.082f, 0.052f, 0.018f, 0.006f); glPopMatrix();
 
-    setMat(jacketR * 0.72f, jacketG * 0.72f, jacketB * 0.74f, 0.045f, 6.0f);
-    glPushMatrix(); glTranslatef(-0.070f, 1.69f, 0.090f); glRotatef(-24.0f, 0.0f, 0.0f, 1.0f); drawScaledSphere(0.016f, 0.092f, 0.014f, 18, 12); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.070f, 1.69f, 0.090f); glRotatef( 24.0f, 0.0f, 0.0f, 1.0f); drawScaledSphere(0.016f, 0.092f, 0.014f, 18, 12); glPopMatrix();
-    glPushMatrix(); glTranslatef(0.0f, 1.53f, 0.118f); drawScaledSphere(0.008f, 0.210f, 0.008f, 16, 10); glPopMatrix();
+    setMat(jacketR * 0.58f, jacketG * 0.58f, jacketB * 0.62f, 0.035f, 6.0f);
+    glPushMatrix(); glTranslatef(-0.047f, 1.56f, 0.154f); glRotatef(-10.0f, 0.0f, 0.0f, 1.0f); drawRoundedBox(0.030f, 0.320f, 0.022f, 0.005f); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.047f, 1.56f, 0.154f); glRotatef( 10.0f, 0.0f, 0.0f, 1.0f); drawRoundedBox(0.030f, 0.320f, 0.022f, 0.005f); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.28f, 0.148f); drawRoundedBox(0.184f, 0.022f, 0.022f, 0.005f); glPopMatrix();
 
-    // Keep the shirt opening recessed with lit volumes so the jacket reads layered from more than one camera angle.
-    setMat(jacketR * 0.58f, jacketG * 0.58f, jacketB * 0.62f, 0.028f, 4.0f);
-    glPushMatrix(); glTranslatef(0.0f, 1.53f, 0.108f); drawScaledSphere(0.012f, 0.230f, 0.020f, 16, 10); glPopMatrix();
-    glPushMatrix(); glTranslatef(-0.082f, 1.47f, 0.126f); drawScaledSphere(0.010f, 0.170f, 0.008f, 16, 10); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.082f, 1.47f, 0.126f); drawScaledSphere(0.010f, 0.170f, 0.008f, 16, 10); glPopMatrix();
+    setMat(jacketR * 0.96f, jacketG * 0.96f, jacketB * 0.98f, 0.060f, 9.0f);
+    glPushMatrix(); glTranslatef(-0.235f, 1.31f, 0.030f); glRotatef(-4.0f, 0.0f, 0.0f, 1.0f); drawScaledSphere(0.040f, 0.345f, 0.044f, 22, 16); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.235f, 1.31f, 0.030f); glRotatef( 4.0f, 0.0f, 0.0f, 1.0f); drawScaledSphere(0.040f, 0.345f, 0.044f, 22, 16); glPopMatrix();
+    glPushMatrix(); glTranslatef(-0.215f, 1.66f, 0.020f); drawScaledSphere(0.056f, 0.052f, 0.056f, 20, 14); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.215f, 1.66f, 0.020f); drawScaledSphere(0.056f, 0.052f, 0.056f, 20, 14); glPopMatrix();
 
-    setMat(0.11f, 0.11f, 0.12f, 0.20f, 28.0f);
-    glPushMatrix(); glTranslatef(0.0f, 1.11f, 0.122f); drawRoundedBox(0.16f, 0.032f, 0.020f, 0.008f); glPopMatrix();
-    setMat(0.56f, 0.56f, 0.54f, 0.24f, 32.0f);
-    glPushMatrix(); glTranslatef(-0.046f, 1.10f, 0.135f); drawRoundedBox(0.040f, 0.050f, 0.010f, 0.004f); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.046f, 1.10f, 0.135f); drawRoundedBox(0.040f, 0.050f, 0.010f, 0.004f); glPopMatrix();
+    setMat(skinR, skinG, skinB, 0.040f, 14.0f);
+    glPushMatrix(); glTranslatef(-0.245f, 0.960f, 0.040f); drawScaledSphere(0.032f, 0.052f, 0.028f, 18, 12); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.245f, 0.960f, 0.040f); drawScaledSphere(0.032f, 0.052f, 0.028f, 18, 12); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.762f, 0.000f); drawCylinderY(0.035f, 0.038f, 0.120f, 20); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.945f, 0.018f); drawScaledSphere(0.092f, 0.128f, 0.084f, 32, 24); glPopMatrix();
+    glPushMatrix(); glTranslatef(0.0f, 1.948f, 0.105f); drawScaledSphere(0.021f, 0.030f, 0.014f, 16, 10); glPopMatrix();
 
-    setMat(jacketR * 0.94f, jacketG * 0.94f, jacketB * 0.95f, 0.060f, 8.0f);
-    glPushMatrix();
-    glTranslatef(-0.235f, 1.60f, 0.00f);
-    glRotatef(191.0f, 0.0f, 0.0f, 1.0f);
-    drawCylinderY(0.050f, 0.042f, 0.46f, 18);
-    glTranslatef(0.0f, 0.46f, 0.0f);
-    drawCylinderY(0.042f, 0.032f, 0.28f, 18);
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(0.235f, 1.60f, 0.00f);
-    glRotatef(169.0f, 0.0f, 0.0f, 1.0f);
-    drawCylinderY(0.050f, 0.042f, 0.46f, 18);
-    glTranslatef(0.0f, 0.46f, 0.0f);
-    drawCylinderY(0.042f, 0.032f, 0.28f, 18);
-    glPopMatrix();
-
-    setMat(0.80f, 0.78f, 0.74f, 0.034f, 12.0f);
-    glPushMatrix(); glTranslatef(-0.285f, 1.04f, 0.03f); drawScaledSphere(0.035f, 0.060f, 0.028f, 16, 10); glPopMatrix();
-    glPushMatrix(); glTranslatef( 0.285f, 1.04f, 0.03f); drawScaledSphere(0.035f, 0.060f, 0.028f, 16, 10); glPopMatrix();
-    glPushMatrix(); glTranslatef(0.0f, 1.75f, 0.00f); drawCylinderY(0.040f, 0.043f, 0.135f, 18); glPopMatrix();
+    setMat(0.96f, 0.96f, 0.91f, 0.018f, 5.0f);
+    glPushMatrix(); glTranslatef(0.0f, 1.74f, 0.142f); drawRoundedBox(0.150f, 0.020f, 0.020f, 0.005f); glPopMatrix();
 }
 
 void drawMannequin(float x, float z, float rotY, float jacketR, float jacketG, float jacketB) {
     glPushMatrix();
     glTranslatef(x, 0.0f, z);
     glRotatef(rotY, 0.0f, 1.0f, 0.0f);
+    glScalef(1.03f, 1.03f, 1.03f);
 
     setMat(0.03f, 0.03f, 0.03f, 0.08f, 8.0f);
     glPushMatrix(); glTranslatef(0.0f, 0.02f, 0.0f); drawCylinderY(0.28f, 0.28f, 0.03f, 28); glPopMatrix();
@@ -2248,18 +2290,9 @@ void drawMannequin(float x, float z, float rotY, float jacketR, float jacketG, f
     glDisable(GL_BLEND);
     glEnable(GL_LIGHTING);
 
-    if (mannequinMeshLoaded) {
-        glPushMatrix();
-        // Keep the imported mesh aligned with the existing pedestal and shoe placement.
-        glTranslatef(0.0f, 0.046f, -0.023f);
-        glScalef(1.0f, 1.0f, 1.0f);
-        drawLoadedMannequinMesh();
-        glPopMatrix();
-    } else {
-        glPushMatrix(); glTranslatef(-0.11f, 0.065f, 0.11f); glRotatef(-6.0f, 0.0f, 1.0f, 0.0f); drawShoe(0.90f, 0.90f, 0.86f); glPopMatrix();
-        glPushMatrix(); glTranslatef( 0.11f, 0.065f, 0.11f); glRotatef( 6.0f, 0.0f, 1.0f, 0.0f); drawShoe(0.90f, 0.90f, 0.86f); glPopMatrix();
-        drawProceduralMannequinBody(jacketR, jacketG, jacketB);
-    }
+    glPushMatrix(); glTranslatef(-0.11f, 0.065f, 0.11f); glRotatef(-6.0f, 0.0f, 1.0f, 0.0f); drawShoe(0.90f, 0.90f, 0.86f); glPopMatrix();
+    glPushMatrix(); glTranslatef( 0.11f, 0.065f, 0.11f); glRotatef( 6.0f, 0.0f, 1.0f, 0.0f); drawShoe(0.90f, 0.90f, 0.86f); glPopMatrix();
+    drawProceduralMannequinBody(jacketR, jacketG, jacketB);
 
     glPopMatrix();
 }
@@ -2303,7 +2336,7 @@ void init() {
 
     buildSceneProgram();
 
-    glClearColor(0.022f, 0.020f, 0.018f, 1.0f);
+    glClearColor(0.012f, 0.011f, 0.010f, 1.0f);
     updateCamera();
 
     glGenFramebuffers(1, &shadowFBO);
@@ -2340,6 +2373,8 @@ void renderScene() {
 
     drawFloor();
     drawContactShadows();
+    drawHeroFloorPass();
+    drawStoreAtmosphere();
     
     if (sceneProgram) glUseProgram(sceneProgram);
     drawArchitecture();
@@ -2371,8 +2406,8 @@ void renderScene() {
 
     glPushMatrix(); glTranslatef(-1.82f, 0.0f, 2.45f); drawPottedPlant(0.70f); glPopMatrix();
     glPushMatrix(); glTranslatef( 4.76f, 0.0f, 3.38f); drawPottedPlant(0.50f); glPopMatrix();
-    glPushMatrix(); glScalef(1.10f, 1.10f, 1.10f); drawMannequin(-4.30f, 4.68f, 5.0f, 0.08f, 0.08f, 0.08f); glPopMatrix();
-    glPushMatrix(); glScalef(1.10f, 1.10f, 1.10f); drawMannequin( 4.30f, 4.68f, -5.0f, 0.12f, 0.15f, 0.22f); glPopMatrix();
+    drawMannequin(-3.62f, 5.02f, 3.0f, 0.08f, 0.08f, 0.08f);
+    drawMannequin( 3.62f, 5.02f, -3.0f, 0.12f, 0.15f, 0.22f);
     
     if (sceneProgram) glUseProgram(0);
 }
@@ -2414,6 +2449,7 @@ void display() {
         drawPresentPass();
     }
     drawStorefrontHeaderOverlay();
+    drawCinematicGradeOverlay();
 }
 
 bool updateMovement(float dt) {
@@ -2515,7 +2551,7 @@ void reshape(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    applyPerspective(47.0f, static_cast<float>(w) / static_cast<float>(h), 0.1f, 100.0f);
+    applyPerspective(42.0f, static_cast<float>(w) / static_cast<float>(h), 0.1f, 100.0f);
     glMatrixMode(GL_MODELVIEW);
 
     if (presentProgram && !resizePresentTargets(w, h)) {

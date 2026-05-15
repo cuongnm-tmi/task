@@ -20,3 +20,7 @@ Bai1.trenlop/glut*
 *.pdb
 *.recipe
 *.tlog
+build-linux
+.local-debs
+.local-extract
+image
