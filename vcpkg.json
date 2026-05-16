@@ -1,10 +1,7 @@
 {
   "name": "icon-mode-store",
-  "version-string": "0.1.0",
+  "version-string": "0.2.0",
   "dependencies": [
-    "assimp",
-    "glad",
-    "glfw3",
-    "glm"
+    "sdl2"
   ]
 }

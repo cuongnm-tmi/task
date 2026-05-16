@@ -1,98 +1,95 @@
 # ICON MODE Store
 
-Dự án dựng cảnh 3D cửa hàng thời trang nam `ICON MODE` theo hai hướng:
+ICON MODE Store is now a C++ Filament walkthrough project. The old raw OpenGL
+Visual Studio path has been retired because the reference images require a
+higher-level real-time PBR renderer with built-in lighting, shadows, glTF, and
+post-processing.
 
-- `C++ OpenGL`: Ứng dụng walkthrough real-time, đã nâng cấp shader PBR và Shadow Mapping.
-- `Blender Cycles`: Render ảnh tĩnh photorealistic với chất lượng cao (ưu tiên khi cần ảnh đẹp trên 90% giống reference).
+## Current Stack
 
-## Trạng Thái Hiện Tại
+- C++20
+- Google Filament for real-time PBR rendering
+- SDL2 for the desktop window and input
+- Blender 4.2+ EEVEE Next for still previews and GLB export
+- CMake as the active build system
 
-- Mã nguồn chính của app OpenGL nằm ở `Bai1.trenlop/Main.cpp`.
-- Các Shader mới nằm trong `Bai1.trenlop/shaders/` (ví dụ: `pbr.vert`).
-- Visual Studio solution: `Bai1.trenlop.slnx`.
-- Project C++: `Bai1.trenlop/Bai1.trenlop.vcxproj`.
-- Quản lý thư viện bằng `vcpkg manifest`: `vcpkg.json`.
-- Blender render pipeline (PBR, HDRI, Area lights) nằm trong thư mục `blender/`.
-- Thư mục output render mặc định là `renders/`.
+## Reference Direction
 
-## Công Nghệ
+The images in `image/` define the target store:
 
-- C++20, OpenGL 4.6 (hoặc tương thích ngược với Shader)
-- GLFW 3, GLAD, GLM, Assimp, stb_image
-- Shadow Mapping, PBR Shader
-- Blender Cycles 4.x (Photorealistic Rendering)
+- dark charcoal concrete walls and ceiling
+- large grey floor tiles
+- black steel shelf frames with dark walnut boards
+- warm amber LED strips under shelves and reception counter ribs
+- white `ICON MODE / MEN'S WEAR` backlit signage
+- symmetrical menswear racks, folded stacks, mannequins, campaign posters,
+  plants, shoes, and a central reception counter
 
-## Cấu Trúc Thư Mục
+## Project Layout
 
 ```text
 .
-+-- Bai1.trenlop.slnx
-+-- vcpkg.json
-+-- Bai1.trenlop/
-|   +-- Main.cpp
-|   +-- Bai1.trenlop.vcxproj
-|   +-- shaders/
-|       +-- pbr.vert
-|   +-- floor.jpg
-|   +-- wood.jpg
-|   +-- mannequin_store.obj
-|   +-- shoe_store.obj
-|   +-- studio.hdr (Tải thủ công từ polyhaven.com)
-+-- blender/
-    +-- icon_mode_cycles_scene.py
-    +-- render_icon_mode.bat
-    +-- README.md
+|-- CMakeLists.txt
+|-- cmake/
+|   `-- FilamentSdk.cmake
+|-- src/
+|   |-- main.cpp
+|   |-- StoreApp.h/.cpp
+|   |-- StoreScene.h/.cpp
+|   |-- CameraController.h/.cpp
+|   `-- LightManager.h/.cpp
+|-- assets/
+|   |-- source/      Original OBJ/JPG source assets
+|   |-- models/      Generated icon_mode_store.glb
+|   |-- textures/    Optional KTX2 textures
+|   `-- ibl/         Optional cmgen output
+|-- blender/
+|   |-- icon_mode_scene.py
+|   |-- export_gltf.py
+|   `-- render_eevee.bat
+`-- image/           Reference photos, ignored by git
 ```
 
-## Hướng Dẫn Setup Thư Viện
+## Generate The Store GLB
 
-Dự án này sử dụng `vcpkg` ở chế độ manifest để tự động cài đặt thư viện (`assimp`, `glad`, `glfw3`, `glm`).
-
-**Bước 1: Tải và cài đặt vcpkg**
-Mở Windows Command Prompt hoặc PowerShell tại thư mục gốc của repository:
 ```bat
-git clone https://github.com/microsoft/vcpkg.git tools\vcpkg
-tools\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+blender.exe --background --python blender\icon_mode_scene.py -- ^
+  --skip-render ^
+  --glb-output assets\models\icon_mode_store.glb
 ```
 
-**Bước 2: Cài đặt thư viện C++ (Tùy chọn, Visual Studio sẽ tự động làm)**
+Or render a still preview and export the GLB in one pass:
+
 ```bat
-tools\vcpkg\vcpkg.exe install --triplet x64-windows
+blender\render_eevee.bat
 ```
 
-**Bước 3: Chuẩn bị tài nguyên HDR cho Blender (Bắt buộc để ảnh đẹp)**
-- Truy cập https://polyhaven.com/hdris
-- Tải một file HDRI (Gợi ý: `studio_small_09_4k.hdr`)
-- Đổi tên file vừa tải thành `studio.hdr` và đặt vào thư mục `Bai1.trenlop/`
+## Build Filament Viewer
 
-## Hướng Dẫn Khởi Chạy Dự Án
+Build Filament separately first, or download an official Filament SDK. Then:
 
-### Khởi chạy ứng dụng C++ OpenGL
-1. Đảm bảo máy tính có Visual Studio (với workload `Desktop development with C++`).
-2. Mở file `Bai1.trenlop.slnx` bằng Visual Studio.
-3. Chọn configuration `Debug` hoặc `Release` và platform `x64`.
-4. (Lưu ý: Nếu bị lỗi Toolset, hãy mở Project Properties và Retarget `Platform Toolset` sang bản hiện có trên máy như `v143`).
-5. Chọn Build Solution.
-6. Nhấn F5 (hoặc Ctrl+F5) để chạy project `Bai1.trenlop`.
-
-### Khởi chạy Render bằng Blender
-Đây là hướng được dùng để đạt chất lượng ảnh PBR + Raytracing cao nhất (giống reference).
-
-**Cách 1: Dùng script có sẵn (Windows)**
 ```bat
-blender\render_icon_mode.bat
+cmake -G Ninja -B build -S . ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DFILAMENT_ROOT=C:\dev\filament\out\cmake-release
+
+cmake --build build
+build\icon_mode_store.exe --model assets\models\icon_mode_store.glb
 ```
 
-**Cách 2: Chạy trực tiếp qua command line**
-```bat
-"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe" --background --python blender\icon_mode_cycles_scene.py -- --output renders\icon_mode_cycles.png --resolution 1920 1080 --samples 512
-```
+If your Filament libraries are not under `FILAMENT_ROOT`, pass
+`-DFILAMENT_LIB_DIR=<path-to-libs>`.
 
-Output mặc định:
-- Ảnh render tĩnh: `renders/icon_mode_cycles.png`
-- File scene Blender có thể mở lại: `renders/icon_mode_cycles.blend`
+## Controls
 
-## Ghi Chú Cập Nhật Photorealism
+- Hold right mouse button: look around
+- `WASD`: move
+- `Q/E`: move down/up
+- `Esc`: quit
 
-- **Blender**: Hệ thống đèn đã được cấu hình với Area lights, DOF (Depth of Field), PBR Materials và HDRI Environment mapping để cho ra kết quả xuất sắc.
-- **OpenGL**: Mã nguồn C++ đã được nâng cấp với Shadow mapping (sử dụng Framebuffer Object 4096x4096) và PBR Shader chuẩn bị cho quá trình kết xuất ánh sáng thực tế.
+## Notes
+
+- `vcpkg.json` only keeps SDL2. Filament is supplied by `FILAMENT_ROOT`.
+- `assets/models/icon_mode_store.glb` is generated output and ignored by git.
+- Blender remains the authoring path. Filament is the interactive walkthrough
+  runtime.

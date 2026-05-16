@@ -1,35 +1,39 @@
-# ICON MODE Blender Cycles Render
+# ICON MODE Blender Pipeline
 
-Use this path when the target is a still image that looks close to the reference render. The C++ OpenGL app remains useful for real-time walkthrough, but the photorealistic output should be rendered with Blender Cycles.
+Blender is the authoring and still-render path. It now builds the reference
+store scene and exports one GLB for the C++ Filament viewer.
 
-## Requirements
-
-- Blender 4.x recommended
-- Existing assets in `Bai1.trenlop/`
-- HDRI Map (Must be manually downloaded from [Polyhaven](https://polyhaven.com/hdris) and saved as `Bai1.trenlop/studio.hdr`)
-
-## Render
-
-From the repository root:
-
-```bash
-blender --background --python blender/icon_mode_cycles_scene.py -- --output renders/icon_mode_cycles.png --resolution 1920 1080 --samples 512
-```
-
-Windows example:
+## Generate GLB Only
 
 ```bat
-"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe" --background --python blender\icon_mode_cycles_scene.py -- --output renders\icon_mode_cycles.png --resolution 1920 1080 --samples 512
+blender.exe --background --python blender\icon_mode_scene.py -- ^
+  --skip-render ^
+  --glb-output assets\models\icon_mode_store.glb
 ```
 
-The script also saves `renders/icon_mode_cycles.blend`, so the scene can be opened and tuned manually if needed.
+## Render EEVEE Next Preview And Export GLB
 
-## What This Builds
+```bat
+blender\render_eevee.bat
+```
 
-- Dark storefront facade with illuminated `ICON MODE` sign
-- Environment mapping using HDRI for realistic ambient lighting
-- Warm track lighting, Area lights replacing point lights, and hidden strip lights
-- Concrete walls, wood floor (`wood.jpg`), rear checkout counter
-- Symmetric wall shelving, folded apparel, hanging shirts, shoes (`shoe_store.obj`)
-- Front mannequins, posters, plants, central display tables
-- Cycles renderer with denoising, Filmic tone mapping, Depth of Field (DOF), and PBR materials
+Equivalent direct command:
+
+```bat
+blender.exe --background --python blender\icon_mode_scene.py -- ^
+  --output renders\icon_mode_eevee.png ^
+  --glb-output assets\models\icon_mode_store.glb ^
+  --resolution 1920 1080 ^
+  --samples 64 ^
+  --save-blend
+```
+
+## What The Script Builds
+
+- dark concrete store shell
+- grey tile floor and black ceiling tracks
+- warm spotlights and amber LED strips
+- rear and front `ICON MODE / MEN'S WEAR` signs
+- reception counter with ribbed amber backlight
+- side wall racks and folded menswear stacks
+- central display tables, shoes, posters, plants, and mannequins

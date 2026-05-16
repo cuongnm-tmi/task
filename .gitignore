@@ -5,6 +5,7 @@ Debug/
 tools/
 vcpkg_installed/
 renders/
+build/
 __pycache__/
 *.pyc
 
@@ -23,4 +24,11 @@ Bai1.trenlop/glut*
 build-linux
 .local-debs
 .local-extract
-image
+
+assets/models/*.glb
+!assets/models/.gitkeep
+assets/textures/*.ktx
+assets/textures/*.ktx2
+!assets/textures/.gitkeep
+assets/ibl/*
+!assets/ibl/.gitkeep
